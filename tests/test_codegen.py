@@ -1619,3 +1619,40 @@ t_computed = Table(
     Column('computed', Integer, Computed('1 + 2'{extra_args}))
 )
 """.format(extra_args=extra_args)
+
+
+def test_autoincrement(metadata):
+    Table(
+        'item', metadata,
+        Column('id', INTEGER, primary_key=True, autoincrement=True),
+    )
+
+    assert generate_code(metadata) == """\
+# coding: utf-8
+from sqlalchemy import Column, Integer
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+metadata = Base.metadata
+
+
+class Item(Base):
+    __tablename__ = 'item'
+
+    id = Column(Integer, primary_key=True)
+"""
+
+    assert generate_code(metadata, autoincrement=True) == """\
+# coding: utf-8
+from sqlalchemy import Column, Integer
+from sqlalchemy.ext.declarative import declarative_base
+
+Base = declarative_base()
+metadata = Base.metadata
+
+
+class Item(Base):
+    __tablename__ = 'item'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+"""

@@ -433,7 +433,8 @@ class CodeGenerator(object):
     def __init__(self, metadata, noindexes=False, noconstraints=False, nojoined=False,
                  noinflect=False, noclasses=False, indentation='    ', model_separator='\n\n',
                  ignored_tables=('alembic_version', 'migrate_version'), table_model=ModelTable,
-                 class_model=ModelClass, template=None, nocomments=False, nobackpopulates=False):
+                 class_model=ModelClass, template=None, nocomments=False, nobackpopulates=False,
+                 autoincrement=False):
         super(CodeGenerator, self).__init__()
         self.metadata = metadata
         self.noindexes = noindexes
@@ -448,6 +449,7 @@ class CodeGenerator(object):
         self.table_model = table_model
         self.class_model = class_model
         self.nocomments = nocomments
+        self.autoincrement = autoincrement
         self.inflect_engine = self.create_inflect_engine()
         if template:
             self.template = template
@@ -677,6 +679,8 @@ class CodeGenerator(object):
             kwarg.append('key')
         if column.primary_key:
             kwarg.append('primary_key')
+            if self.autoincrement:
+                kwarg.append('autoincrement')
         if not column.nullable and not is_sole_pk:
             kwarg.append('nullable')
         if is_unique:
