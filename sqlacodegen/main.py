@@ -30,8 +30,8 @@ def main():
     parser.add_argument('--nocomments', action='store_true', help="don't render column comments")
     parser.add_argument('--nobackpopulates', action='store_true',
                         help="don't generate back_populates for relationship")
-    parser.add_argument('--autoincrement', action='store_true',
-                        help="add autoincrement for primary key")
+    parser.add_argument('--noautoincrement', action='store_true',
+                        help="don't add autoincrement for primary key")
     parser.add_argument('--outfile', help='file to write output to (default: stdout)')
     args = parser.parse_args()
 
@@ -55,7 +55,7 @@ def main():
     generator = CodeGenerator(metadata, args.noindexes, args.noconstraints, args.nojoined,
                               args.noinflect, args.noclasses, nocomments=args.nocomments,
                               nobackpopulates=args.nobackpopulates,
-                              autoincrement=args.autoincrement)
+                              autoincrement=not args.noautoincrement)
     generator.render(outfile)
 
 
