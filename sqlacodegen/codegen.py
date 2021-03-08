@@ -370,23 +370,26 @@ class CodeGenerator(object):
             self.template = template
 
         # Pick association tables from the metadata into their own set, don't process them normally
-        links = defaultdict(lambda: [])
-        association_tables = set()
+        self.links = defaultdict(lambda: [])
+        # So that we can access metadata from an instantiated and run CodeGenerator Class
+        self.association_tables = set()
         for table in metadata.tables.values():
             # Link tables have exactly two foreign key constraints and all columns are involved in
             # them
             fk_constraints = [constr for constr in table.constraints
                               if isinstance(constr, ForeignKeyConstraint)]
             if len(fk_constraints) == 2 and all(col.foreign_keys for col in table.columns):
-                association_tables.add(table.name)
+                self.association_tables.add(table.name)
                 tablename = sorted(
                     fk_constraints, key=_get_constraint_sort_key)[0].elements[0].column.table.name
-                links[tablename].append(table)
+                self.links[tablename].append(table)
 
         # Iterate through the tables and create model classes when possible
         self.models = []
         self.collector = ImportCollector()
-        classes = {}
+        self.classes = {}
+        
+        # Iterate through all the tables
         for table in metadata.sorted_tables:
             # Support for Alembic and sqlalchemy-migrate -- never expose the schema version tables
             if table.name in self.ignored_tables:
@@ -435,7 +438,7 @@ class CodeGenerator(object):
             else:
                 model = self.class_model(table, links[table.name], self.inflect_engine,
                                          not nojoined)
-                classes[model.name] = model
+                self.classes[model.name] = model
 
             self.models.append(model)
             model.add_imports(self.collector)
@@ -443,7 +446,7 @@ class CodeGenerator(object):
         # Nest inherited classes in their superclasses to ensure proper ordering
         for model in classes.values():
             if model.parent_name != 'Base':
-                classes[model.parent_name].children.append(model)
+                self.classes[model.parent_name].children.append(model)
                 self.models.remove(model)
 
         # Add either the MetaData or declarative_base import depending on whether there are mapped
